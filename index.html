@@ -1861,7 +1861,12 @@ function describeFlags(flagStr){
 
 function driverFor(vehicle){
   const labels = getDriverLabels();
-  return labels[vehicle] || vehicle; // fall back to vehicle plate if unlabelled
+  const lab = labels[vehicle];
+  if(!lab) return vehicle; // fall back to vehicle plate if unlabelled
+  // if the driver label is the same as the vehicle number/label, show it once only (no "X — X")
+  const norm = x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(norm(lab)===norm(vehicle) || (typeof vLabel==='function' && norm(lab)===norm(vLabel(vehicle)))) return vehicle;
+  return lab;
 }
 
 // ---- Vehicle number labels (privacy: show "Vehicle 1", "Vehicle 2"... instead of the
