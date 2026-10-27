@@ -1,0 +1,13 @@
+*PRIVATE*
+*Key*
+.DS_Store
+docs/
+data/
+*.docx
+*.xlsx
+*.xls
+*.pdf
+*.csv
+*.pkl
+!sample/
+!sample/*
