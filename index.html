@@ -4,6 +4,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://tile.openstreetmap.org; connect-src 'self' https://cdnjs.cloudflare.com; worker-src blob: https://cdnjs.cloudflare.com; manifest-src data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow, noarchive">
 <title>Rioel Vehicle Tracker</title>
 <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIlJpb2VsIFZlaGljbGUgVHJhY2tlciIsICJzaG9ydF9uYW1lIjogIlJpb2VsIFRyYWNrZXIiLCAiZGVzY3JpcHRpb24iOiAiQ2FyLXRyYWNrIGRlcml2ZWQgSU4vT1VUIHRpbWVzLCB0dXJuZWQgaW50byBwYXlyb2xsLXJlYWR5IGhvdXJzIiwgInN0YXJ0X3VybCI6ICIuIiwgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNGN0Y5RkIiLCAidGhlbWVfY29sb3IiOiAiIzBFNkM5QyIsICJpY29ucyI6IFt7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSFpwWlhkQ2IzZzlJakFnTUNBMU1USWdOVEV5SWo0OGNtVmpkQ0IzYVdSMGFEMGlOVEV5SWlCb1pXbG5hSFE5SWpVeE1pSWdjbmc5SWprMklpQm1hV3hzUFNJak1FVTJRemxESWk4K1BIUmxlSFFnZUQwaU1qVTJJaUI1UFNJek16QWlJR1p2Ym5RdGMybDZaVDBpTWpZd0lpQjBaWGgwTFdGdVkyaHZjajBpYldsa1pHeGxJaUJtYjI1MExXWmhiV2xzZVQwaVFYSnBZV3dzSUhOaGJuTXRjMlZ5YVdZaVB2Q2ZtcG84TDNSbGVIUStQQzl6ZG1jKyIsICJzaXplcyI6ICI1MTJ4NTEyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsICJwdXJwb3NlIjogImFueSJ9LCB7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSFpwWlhkQ2IzZzlJakFnTUNBMU1USWdOVEV5SWo0OGNtVmpkQ0IzYVdSMGFEMGlOVEV5SWlCb1pXbG5hSFE5SWpVeE1pSWdjbmc5SWprMklpQm1hV3hzUFNJak1FVTJRemxESWk4K1BIUmxlSFFnZUQwaU1qVTJJaUI1UFNJek16QWlJR1p2Ym5RdGMybDZaVDBpTWpZd0lpQjBaWGgwTFdGdVkyaHZjajBpYldsa1pHeGxJaUJtYjI1MExXWmhiV2xzZVQwaVFYSnBZV3dzSUhOaGJuTXRjMlZ5YVdZaVB2Q2ZtcG84TDNSbGVIUStQQzl6ZG1jKyIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsICJwdXJwb3NlIjogImFueSJ9XX0=">
 <meta name="theme-color" content="#0F1623">
@@ -7290,7 +7293,7 @@ document.getElementById('noveh-schedule-file-input').addEventListener('change', 
       text = rows.map(r=>(r||[]).filter(c=>c!=null).join(' ')).join('\n');
     }
     // a PDF export of the schedule can cut each long line at the page edge, which chops names
-    // ("Aaron" -> "Aar"). A complete team line ends with a full stop (usually "./").
+    // (a long name is cut short). A complete team line ends with a full stop (usually "./").
     const teamLines = text.split('\n').filter(l=>/Team:/.test(l));
     const cutLines = teamLines.filter(l=>!/\.\/?\s*(?:Description:.*)?$/.test(l.trim()) && !/Description:/.test(l)).length;
     const cutWarn = (cutLines > 0 && /\.pdf$/i.test(file.name)) ? ` WARNING: ${cutLines} of ${teamLines.length} team lines look cut off at the page edge, so some names may be shortened. Use the Excel version of the schedule instead.` : '';
@@ -7940,8 +7943,8 @@ function renderMapLinks(pts, stops){
   const wp = pick(moving, 10), o = wp[0], d = wp[wp.length-1], mid = wp.slice(1,-1);
   const dir = 'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin='+o.lat.toFixed(6)+','+o.lon.toFixed(6)+'&destination='+d.lat.toFixed(6)+','+d.lon.toFixed(6)+(mid.length?'&waypoints='+mid.map(p=>p.lat.toFixed(6)+','+p.lon.toFixed(6)).join('%7C'):'');
   const hm = t=>new Date(t).toISOString().substr(11,5);
-  const rows = stops.map(st=>`<tr><td class="num">${hm(st.from)}–${hm(st.to)}</td><td class="num">${st.mins} min</td><td>${fxEsc(String(st.loc||'').replace(/, New Zealand$/,''))}</td><td class="num">${st.lat.toFixed(5)}, ${st.lon.toFixed(5)}</td><td><a href="${gmapsPt(st.lat,st.lon)}" target="_blank" rel="noopener">Google Maps</a> · <a href="https://www.openstreetmap.org/?mlat=${st.lat.toFixed(6)}&mlon=${st.lon.toFixed(6)}#map=17/${st.lat.toFixed(6)}/${st.lon.toFixed(6)}" target="_blank" rel="noopener">OpenStreetMap</a></td></tr>`).join('');
-  box.innerHTML = `<div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;"><a class="btn small" href="${dir}" target="_blank" rel="noopener">Open the whole route in Google Maps</a><a class="btn ghost small" href="${gmapsPt(pts[0].lat,pts[0].lon)}" target="_blank" rel="noopener">First ping</a><a class="btn ghost small" href="${gmapsPt(pts[pts.length-1].lat,pts[pts.length-1].lon)}" target="_blank" rel="noopener">Last ping</a></div>`+
+  const rows = stops.map(st=>`<tr><td class="num">${hm(st.from)}–${hm(st.to)}</td><td class="num">${st.mins} min</td><td>${fxEsc(String(st.loc||'').replace(/, New Zealand$/,''))}</td><td class="num">${st.lat.toFixed(5)}, ${st.lon.toFixed(5)}</td><td><a href="${gmapsPt(st.lat,st.lon)}" target="_blank" rel="noopener noreferrer">Google Maps</a> · <a href="https://www.openstreetmap.org/?mlat=${st.lat.toFixed(6)}&mlon=${st.lon.toFixed(6)}#map=17/${st.lat.toFixed(6)}/${st.lon.toFixed(6)}" target="_blank" rel="noopener noreferrer">OpenStreetMap</a></td></tr>`).join('');
+  box.innerHTML = `<div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;"><a class="btn small" href="${dir}" target="_blank" rel="noopener noreferrer">Open the whole route in Google Maps</a><a class="btn ghost small" href="${gmapsPt(pts[0].lat,pts[0].lon)}" target="_blank" rel="noopener noreferrer">First ping</a><a class="btn ghost small" href="${gmapsPt(pts[pts.length-1].lat,pts[pts.length-1].lon)}" target="_blank" rel="noopener noreferrer">Last ping</a></div>`+
     (rows?`<div style="font-weight:600; margin-top:10px;">Stops of 5 minutes or more</div><div style="overflow:auto;"><table style="font-size:12.5px;"><thead><tr><th>Time</th><th>Stayed</th><th>Address from the tracker</th><th>Latitude, longitude</th><th>Open on a map</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div style="color:var(--ink-soft);margin-top:8px;">No stops of 5 minutes or more that day.</div>');
 }
 function setMapIndex(i){
@@ -7949,7 +7952,7 @@ function setMapIndex(i){
   i = Math.max(0, Math.min(pts.length-1, i)); mapState.idx = i;
   const p = pts[i], c = document.getElementById('map-cursor');
   if(c){ c.setAttribute('cx', pr.X(p.lon)); c.setAttribute('cy', pr.Y(p.lat)); }
-  document.getElementById('map-readout').innerHTML = `<b>${new Date(p.t).toISOString().substr(11,8)}</b> · ${p.spd.toFixed(0)} km/h · ${fxEsc(String(p.loc||'').replace(/, New Zealand$/,''))} <span style="color:var(--ink-soft);">(${p.lat.toFixed(5)}, ${p.lon.toFixed(5)})</span> <a href="${gmapsPt(p.lat,p.lon)}" target="_blank" rel="noopener">open in Google Maps</a>`;
+  document.getElementById('map-readout').innerHTML = `<b>${new Date(p.t).toISOString().substr(11,8)}</b> · ${p.spd.toFixed(0)} km/h · ${fxEsc(String(p.loc||'').replace(/, New Zealand$/,''))} <span style="color:var(--ink-soft);">(${p.lat.toFixed(5)}, ${p.lon.toFixed(5)})</span> <a href="${gmapsPt(p.lat,p.lon)}" target="_blank" rel="noopener noreferrer">open in Google Maps</a>`;
 }
 function stopMapPlay(){ if(mapState.timer){ clearInterval(mapState.timer); mapState.timer=null; } const b=document.getElementById('map-play'); if(b) b.textContent='Play'; }
 document.getElementById('map-zin').addEventListener('click', ()=>mapZoom(1.6));
