@@ -6706,9 +6706,40 @@ function fillNoVehFromSchedule(worker, startStr, endStr){
     d.setUTCDate(d.getUTCDate()+1);
   }
 }
+// Same rule as the payroll sheet: a driver with no OUT (or no GPS row) that day takes the OUT of the
+// supervisor's vehicle (first name on that day's team; else another team vehicle that has GPS)
+function withSupervisorOut(row, plates, date){
+  if(row && row.out && !isOutDataGap(row)) return row;
+  let entries=[]; try{ entries = getScheduleEntries().filter(e=>e.date===date); }catch(_){ return row; }
+  const plateList = Array.isArray(plates) ? plates : (plates ? [plates] : []);
+  for(const e of entries){
+    const members = String(e.teamRaw||'').split(/[,/]|(?:\s+and\s+)/i).map(w=>w.trim().replace(/[.\s]+$/,'')).filter(Boolean);
+    const mine = members.some(m=>{ const pl = matchNameToVehicle(m); return pl && plateList.includes(pl); });
+    if(!mine) continue;
+    for(const m of members){
+      const pl = matchNameToVehicle(m);
+      if(!pl || plateList.includes(pl)) continue;
+      const v = currentData.find(x=>x.vehicle===pl);
+      const sr = v ? v.rows.find(r=>r.date===date) : null;
+      if(sr && sr.out && !isOutDataGap(sr)){
+        const base = row || {};
+        return Object.assign({}, base, {out: sr.out, in: base.in || sr.in, flags: '', _supNote: `OUT and hours from ${m}'s vehicle (same as supervisor)`});
+      }
+    }
+  }
+  return row;
+}
 function computeNoVehAssignmentRow(a, workerName){
   const v = currentData.find(x=>x.vehicle===a.vehicle);
   let row = v ? v.rows.find(r=>r.date===a.date) : null;
+  // OUT is the supervisor's: if the supervisor's own vehicle has GPS that day, use that vehicle's day
+  try{
+    const supName = noVehSupervisorName({name: workerName}, a, a.date);
+    const sp = supName ? matchNameToVehicle(supName) : null;
+    const sv = sp ? currentData.find(x=>x.vehicle===sp) : null;
+    const sr = sv ? sv.rows.find(r=>r.date===a.date) : null;
+    if(sr && sr.out && !isOutDataGap(sr)){ row = sr; a = Object.assign({}, a, {vehicle: sp}); }
+  }catch(_){}
   // IN is exactly the time the supervisor schedule called the crew for (the supervisor's own time, the same
   // for everyone on the team), whatever time the vehicle they rode in reached the office or the site
   let ps = (row && workerName) ? plannedStartForPerson(workerName, null, a.date) : null;
@@ -9356,6 +9387,7 @@ function buildOneTimesheetPage(r, periodStart, periodEnd, periodLabel){
       if(found && !row) row = found;
     });
     const weekend = isWeekendDate(dateStr);
+    row = withSupervisorOut(row, vehiclePlates, dateStr);
     row = withScheduleIn(row, null, vehiclePlates, dateStr);
     const {net} = row ? dayHours(row) : {net:null};
     dayRows.push({
@@ -9363,7 +9395,7 @@ function buildOneTimesheetPage(r, periodStart, periodEnd, periodLabel){
       in: row ? row.in : null, out: row ? row.out : null,
       hours: net,
       site: withSchedSite(row ? formatStartEndSite(row.first_loc, row.final_loc, row.all_sites) : null, scheduleSiteForPerson(null, r.vehicle.split(', '), dateStr)),
-      notes: row ? rowNotes(row) : '',
+      notes: row ? [rowNotes(row), row._supNote].filter(Boolean).join(' \u00b7 ') : '',
     });
     start.setUTCDate(start.getUTCDate()+1);
   }
@@ -9526,6 +9558,7 @@ function buildOneTimesheetPageDocxSection(r, periodStart, periodEnd, periodLabel
       if(found && !row) row = found;
     });
     const weekend = isWeekendDate(dateStr);
+    row = withSupervisorOut(row, vehiclePlates, dateStr);
     row = withScheduleIn(row, null, vehiclePlates, dateStr);
     const {net} = row ? dayHours(row) : {net:null};
     dayRows.push({
@@ -9533,7 +9566,7 @@ function buildOneTimesheetPageDocxSection(r, periodStart, periodEnd, periodLabel
       in: row ? row.in : null, out: row ? row.out : null,
       hours: net,
       site: withSchedSite(row ? formatStartEndSite(row.first_loc, row.final_loc, row.all_sites) : null, scheduleSiteForPerson(null, r.vehicle.split(', '), dateStr)),
-      notes: row ? rowNotes(row) : '',
+      notes: row ? [rowNotes(row), row._supNote].filter(Boolean).join(' \u00b7 ') : '',
     });
     start.setUTCDate(start.getUTCDate()+1);
   }
