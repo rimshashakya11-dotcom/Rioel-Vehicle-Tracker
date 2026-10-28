@@ -6684,12 +6684,35 @@ function siteCellDocx(d, fill, size, width){
   return new TableCell({width: width ? {size:width, type:docx.WidthType.DXA} : undefined, shading: fill ? {fill} : undefined, children: kids});
 }
 
+// Report helpers: everyone is shown at the supervisor's scheduled call time (IN), as in the Day view
+function withScheduleIn(row, name, plates, date){
+  if(!row) return row;
+  let ps = null;
+  try{ ps = plannedStartForPerson(name, plates, date); }catch(_){}
+  if(ps && row.in && String(row.in).slice(0,5) !== ps.time) return Object.assign({}, row, {in: ps.time+':00'});
+  return row;
+}
+// A worker added without a vehicle: fill any weekday in the period that the schedule names them on,
+// using the supervisor's vehicle. Days already entered by hand are never changed.
+function fillNoVehFromSchedule(worker, startStr, endStr){
+  let d = new Date(startStr+'T00:00:00Z'); const end = new Date(endStr+'T00:00:00Z');
+  while(d <= end){
+    const ds = d.toISOString().slice(0,10);
+    if(!worker.assignments.some(a=>a.date===ds)){
+      const sup = scheduleSupervisorForPerson(worker.name, ds);
+      const plate = sup ? matchNameToVehicle(sup) : null;
+      if(plate) worker.assignments.push({date: ds, vehicle: plate, supervisorLabel: sup, inferred: true});
+    }
+    d.setUTCDate(d.getUTCDate()+1);
+  }
+}
 function computeNoVehAssignmentRow(a, workerName){
   const v = currentData.find(x=>x.vehicle===a.vehicle);
   let row = v ? v.rows.find(r=>r.date===a.date) : null;
   // IN is exactly the time the supervisor schedule called the crew for (the supervisor's own time, the same
   // for everyone on the team), whatever time the vehicle they rode in reached the office or the site
-  const ps = (row && workerName) ? plannedStartForPerson(workerName, null, a.date) : null;
+  let ps = (row && workerName) ? plannedStartForPerson(workerName, null, a.date) : null;
+  if(row && !ps && a.supervisorLabel){ ps = plannedStartForPerson(String(a.supervisorLabel).replace(/\s*\(usual vehicle\)\s*$/i,'').trim(), null, a.date); }
   if(ps && row.in && row.in.slice(0,5) !== ps.time) row = Object.assign({}, row, {in: ps.time+':00'});
   const {net} = row ? dayHours(row) : {net:null};
   return {
@@ -9333,6 +9356,7 @@ function buildOneTimesheetPage(r, periodStart, periodEnd, periodLabel){
       if(found && !row) row = found;
     });
     const weekend = isWeekendDate(dateStr);
+    row = withScheduleIn(row, null, vehiclePlates, dateStr);
     const {net} = row ? dayHours(row) : {net:null};
     dayRows.push({
       day: dayName, date: dateStr, weekend,
@@ -9502,6 +9526,7 @@ function buildOneTimesheetPageDocxSection(r, periodStart, periodEnd, periodLabel
       if(found && !row) row = found;
     });
     const weekend = isWeekendDate(dateStr);
+    row = withScheduleIn(row, null, vehiclePlates, dateStr);
     const {net} = row ? dayHours(row) : {net:null};
     dayRows.push({
       day: dayName, date: dateStr, weekend,
@@ -9687,9 +9712,11 @@ async function buildCompanyTimesheetDocx(onlyVehicles){
   }
   noVehWorkers.forEach(worker=>{
     if(!fortnight) return;
+    try{ fillNoVehFromSchedule(worker, fortnight[0], fortnight[1]); }catch(_){}
     const relevantAssignments = worker.assignments.filter(a=>a.date>=fortnight[0] && a.date<=fortnight[1]);
-    if(relevantAssignments.length===0) return;
-    if(onlyVehicles && onlyVehicles.size>0 && !relevantAssignments.some(a=>onlyVehicles.has(a.vehicle))) return;
+    // a worker who was added is always listed in the report, even before any day is entered
+    if(onlyVehicles && onlyVehicles.size>0 && relevantAssignments.length>0 && !relevantAssignments.some(a=>onlyVehicles.has(a.vehicle))) return;
+    if(onlyVehicles && onlyVehicles.size>0 && relevantAssignments.length===0) return;
     sections.push(buildOneTimesheetPageDocxSectionForNoVehWorker(worker, fortnight[0], fortnight[1], `${fortnight[0]} - ${fortnight[1]}`, sections.length===0));
   });
   if(sections.length===0) return null;
@@ -9734,9 +9761,11 @@ function buildCompanyTimesheetHtml(onlyVehicles){
   // means for someone who doesn't have a fixed vehicle of their own.
   noVehWorkers.forEach(worker=>{
     if(!fortnight) return;
+    try{ fillNoVehFromSchedule(worker, fortnight[0], fortnight[1]); }catch(_){}
     const relevantAssignments = worker.assignments.filter(a=>a.date>=fortnight[0] && a.date<=fortnight[1]);
-    if(relevantAssignments.length===0) return;
-    if(onlyVehicles && onlyVehicles.size>0 && !relevantAssignments.some(a=>onlyVehicles.has(a.vehicle))) return;
+    // a worker who was added is always listed in the report, even before any day is entered
+    if(onlyVehicles && onlyVehicles.size>0 && relevantAssignments.length>0 && !relevantAssignments.some(a=>onlyVehicles.has(a.vehicle))) return;
+    if(onlyVehicles && onlyVehicles.size>0 && relevantAssignments.length===0) return;
     pages.push(buildOneTimesheetPageForNoVehWorker(worker, fortnight[0], fortnight[1], `${fortnight[0]} - ${fortnight[1]}`));
   });
   const driverPages = pages.join('\n');
