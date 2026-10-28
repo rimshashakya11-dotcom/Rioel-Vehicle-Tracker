@@ -10159,6 +10159,17 @@ function renderDayView(){
       <td class="num"><b class="score s-${r.score>=85?'good':r.score>=65?'mid':'bad'}">${r.score ?? '—'}</b>${verifiedMark(v.vehicle,r.date)}</td>
       <td class="loc">${r.flags?evEsc(rowNotes(r)):''}</td></tr>`;
   }).join('');
+  // workers who have no vehicle of their own: shown with the supervisor they worked under that day
+  let nvRows = '';
+  try{
+    noVehWorkers.forEach(w=>w.assignments.filter(x=>x.date===dayViewDate).forEach(x=>{
+      const c = computeNoVehAssignmentRow(x, w.name);
+      if(dayViewVeh!=='all' && x.vehicle!==dayViewVeh) return;
+      const sup = noVehSupervisorName(w, x, dayViewDate);
+      nvRows += `<tr><td>${evEsc(w.name)}</td><td>${sup?evEsc(sup):'—'}</td><td>${c.vehicle?'<span class="veh-tag">'+evEsc(vLabel(c.vehicle))+'</span>':'—'}</td><td class="num">${c.in||'—'}</td><td class="num">${c.out||'—'}</td><td class="num">${c.net!=null?c.net.toFixed(2):'—'}</td><td class="loc">${x.inferred?'Inferred from usual vehicle':''}</td></tr>`;
+    }));
+  }catch(e){ nvRows = ''; }
+  const nvHtml = nvRows ? `<h3 style="margin:14px 0 6px;">Workers without a vehicle</h3><div class="table-card"><table><thead><tr><th>Worker</th><th>Supervisor that day</th><th>Rode in</th><th class="num">IN</th><th class="num">OUT</th><th class="num">Net hrs</th><th>Note</th></tr></thead><tbody>${nvRows}</tbody></table></div>` : '';
   const working = items.filter(({r})=>r.in||r.out).length;
   box.innerHTML = `
     <div class="kpis" style="margin-bottom:8px;">
@@ -10170,7 +10181,8 @@ function renderDayView(){
     <div class="lanes"><div class="lane axis"><div class="lane-lbl"></div><div class="tl-track lane-track" style="background:none;height:18px;margin:0;">${ticks}</div></div>${lanes}
       <div class="tl-legend" style="margin-top:6px;"><span><i class="sw k-drive"></i>Driving</span><span><i class="sw k-site"></i>Work site</span><span><i class="sw k-depot"></i>Office / depot</span><span><i class="sw k-home"></i>Home</span><span><i class="sw k-other"></i>Other stop</span><span style="color:var(--green)">| IN</span><span style="color:var(--red)">| OUT</span></div></div>
     <div class="table-card" style="margin-top:10px;"><table><thead><tr><th>Driver</th><th>Vehicle</th><th class="num">IN</th><th class="num">OUT</th><th class="num">Net hrs</th><th>In address</th><th>Out address</th><th class="num">Score</th><th>Notes</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>
-    ${idle.length?`<p class="muted" style="margin-top:8px;">No activity: ${idle.map(p=>evEsc(vLabel(p))).join(', ')}</p>`:''}`;
+    ${idle.length?`<p class="muted" style="margin-top:8px;">No activity: ${idle.map(p=>evEsc(vLabel(p))).join(', ')}</p>`:''}
+    ${nvHtml}`;
 }
 function dayViewStep(dir){
   const d = dayViewDates(); const i = d.indexOf(dayViewDate);
