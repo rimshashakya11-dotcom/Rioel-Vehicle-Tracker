@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://tile.openstreetmap.org; connect-src 'self' https://cdnjs.cloudflare.com; worker-src blob: https://cdnjs.cloudflare.com; manifest-src data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex, nofollow, noarchive"><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cdnjs.cloudflare.com; worker-src blob: https://cdnjs.cloudflare.com; manifest-src data:; object-src 'none'; base-uri 'none'; form-action 'none'"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex, nofollow, noarchive"><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -620,6 +620,85 @@ tr.day-row{cursor:pointer;} tr.day-row:hover td{background:var(--paper-alt);}
 .sub-note{font-size:11px;opacity:.7;font-weight:400;margin-top:2px}
 .gap-badge{display:inline-block;padding:2px 8px;border-radius:10px;border:1px dashed currentColor;color:var(--red,#c0392b);font-size:12px;font-weight:600}
 .exc-sel{margin-top:6px;font-size:12px;padding:2px 4px;border-radius:6px;max-width:150px}
+
+/* ===== Console layout: dark sidebar, slim top bar, cream workspace, serif page titles ===== */
+:root{
+  --side-bg:#11251F; --side-ink:#EFE8D8; --side-soft:#A9B3A6; --side-active:rgba(255,255,255,.08);
+  --btn-dark:#10241F; --card-line:#E7DECB; --radius-card:18px;
+}
+:root[data-theme="dark"]{ --side-bg:#0B1713; --btn-dark:#D4B46A; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --side-bg:#0B1713; --btn-dark:#D4B46A; } }
+#app[style*="flex"]{
+  display:grid !important; grid-template-columns:264px minmax(0,1fr); grid-template-rows:auto auto auto minmax(0,1fr) auto;
+  max-width:none; margin:0; padding:0; gap:0; height:100%;
+}
+#app .masthead{
+  grid-column:1 / -1; grid-row:1; border-radius:0; border:0; border-bottom:1px solid rgba(255,255,255,.06);
+  padding:10px 22px; box-shadow:none; background:var(--masthead-bg);
+}
+#app .masthead::after, #app .mast-road{display:none;}
+#app .brand .login-mark{width:30px; height:30px; font-size:16px;}
+#app .masthead h1{font-size:23px;}
+#app .masthead .sub{font-size:10px;}
+#app .btn.ghost.mast-btn{border-radius:99px; padding:8px 16px; text-transform:none; letter-spacing:0; font-size:13px; font-weight:600;}
+#app #clear-history-btn{text-transform:none; letter-spacing:0; font-size:13px; font-weight:600; padding:8px 16px;}
+#app .period-pill{font-family:var(--f-body); font-size:12px;}
+/* sidebar = the existing tab bar, stacked */
+#app .tabs{
+  grid-column:1; grid-row:2 / 6; flex-direction:column; align-items:stretch; flex-wrap:nowrap; gap:3px;
+  background:var(--side-bg); border:0; padding:18px 12px 16px; overflow-y:auto;
+}
+#app .tab-btn{
+  text-align:left; text-transform:none; letter-spacing:0; font-size:15.5px; font-weight:500; white-space:normal;
+  color:var(--side-ink); padding:12px 16px; border-radius:12px; border:1px solid transparent; margin:0;
+}
+#app .tab-btn::after{display:none;}
+#app .tab-btn:hover{background:rgba(255,255,255,.05); color:#fff;}
+#app .tab-btn.active{background:var(--side-active); border:1px solid rgba(201,161,91,.55); color:#fff;}
+#app .tabs .spacer{flex:1; min-height:12px;}
+#app .setup-btn{
+  margin:6px 0 0; border-radius:12px; text-transform:none; letter-spacing:0; font-size:14px; font-weight:600; padding:12px 16px;
+  background:transparent; color:var(--side-ink); border:1px solid rgba(255,255,255,.22); animation:none;
+}
+#app .setup-btn:hover{border-color:#C9A15B; box-shadow:none;}
+#app .btn.ghost.mast-btn{color:#F3E9D2; border-color:rgba(243,233,210,.32); background:transparent;}
+#app .btn.ghost.mast-btn:hover{border-color:#C9A15B; color:#E3C887;}
+#app #setup-btn.setup-btn{background:transparent !important; animation:none !important; color:var(--side-ink); border:1px solid rgba(255,255,255,.22);}
+#app .dash-grid{min-height:780px; height:auto;}
+/* page header */
+.page-head{grid-column:2; grid-row:2; padding:18px 30px 4px;}
+.page-head .eyebrow{font-size:11px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft);}
+.page-head h2{font-family:var(--f-display); font-weight:600; font-size:38px; line-height:1.1; margin:2px 0 0; color:var(--ink);}
+#app #kpis{grid-column:2; grid-row:3; padding:10px 30px 4px;}
+#app > [id^="tab-"]:not(.tabs){grid-column:2; grid-row:4; flex:none; min-height:0; padding:8px 30px 16px; background:var(--paper);}
+#app > footer{grid-column:2; grid-row:5; padding:8px 30px 12px;}
+#app{background:var(--paper);}
+/* cards */
+#app .kpi, #app .table-card, #app .upload-box, #app .chart-card{border-radius:var(--radius-card); border:1px solid var(--card-line); box-shadow:0 1px 2px rgba(20,33,29,.04), 0 10px 28px -16px rgba(20,33,29,.18);}
+#app .kpi{border-top:1px solid var(--card-line); padding:12px 16px;}
+#app .kpi .lbl{letter-spacing:.14em;}
+#app .upload-box{border-style:solid;}
+#app .section-head h2{font-size:23px;}
+#app thead th{font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft);}
+#app tbody tr:hover td{background:rgba(143,107,30,.05);}
+#app .btn{background:var(--btn-dark); border-color:var(--btn-dark); color:#fff; text-transform:none; letter-spacing:0; font-size:13px; padding:10px 20px; border-radius:12px;}
+:root[data-theme="dark"] #app .btn{color:#14161B;}
+#app .btn.ghost{background:transparent; color:var(--ink); border:1px solid var(--line);}
+#app .btn.small{font-size:12.5px; padding:7px 14px;}
+#app select, #app input[type=date], #app input[type=time], #app input[type=text], #app input[type=number]{border-radius:12px !important; padding:8px 12px !important;}
+#app .chip{border:1px solid var(--card-line); background:var(--card); color:var(--ink); font-weight:600; padding:4px 12px;}
+#app .chip.ok{background:var(--green-soft); color:var(--green); border-color:transparent;}
+#app .chip.review{background:var(--amber-soft); color:var(--amber); border-color:transparent;}
+@media (max-width:900px){
+  #app[style*="flex"]{grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto auto auto minmax(0,1fr) auto; height:auto; min-height:100%;}
+  #app .tabs{grid-column:1; grid-row:2; flex-direction:row; overflow-x:auto; padding:8px 10px; gap:4px;}
+  #app .tab-btn{white-space:nowrap; font-size:14px; padding:9px 13px;}
+  .page-head{grid-column:1; grid-row:3; padding:14px 16px 2px;} .page-head h2{font-size:30px;}
+  #app #kpis{grid-column:1; grid-row:4; padding:8px 16px;}
+  #app > [id^="tab-"]:not(.tabs){grid-column:1; grid-row:5; padding:8px 16px 16px;}
+  #app > footer{grid-column:1; grid-row:6; padding:8px 16px 14px;}
+  #app .masthead{padding:10px 14px;} #app .mast-right{gap:6px;}
+}
 </style>
 </head>
 <body>
@@ -792,6 +871,7 @@ tr.day-row{cursor:pointer;} tr.day-row:hover td{background:var(--paper-alt);}
       <button id="clear-history-btn" class="btn small" style="background:var(--red); border-color:var(--red); color:#fff;">Delete history &amp; reset</button>
     </div>
   </div>
+  <div class="page-head" id="page-head"><div class="eyebrow" id="page-eyebrow">Payroll</div><h2 id="page-title">All vehicles</h2></div>
   <div class="kpis" id="kpis"></div>
 
   <div id="setup-back" class="drawer-back" hidden></div>
@@ -1510,7 +1590,6 @@ tr.day-row{cursor:pointer;} tr.day-row:hover td{background:var(--paper-alt);}
         <label><input type="checkbox" id="map-roads" checked> Roads driven</label>
         <label><input type="checkbox" id="map-names" checked> Street names</label>
         <label><input type="checkbox" id="map-subs" checked> Suburb names</label>
-        <label><input type="checkbox" id="map-tiles"> OpenStreetMap pictures (only if this browser allows them)</label>
       </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; font-size:13px;">
         <button class="btn small" id="map-zin" title="Zoom in">＋</button><button class="btn small" id="map-zout" title="Zoom out">－</button>
@@ -1805,15 +1884,46 @@ const DRIVER_LABEL_KEY = 'rii_driver_labels'; // {vehiclePlate: 'label'} -- MEMO
 
 // PRIVACY: no plates or driver names are built into this page or saved on disk. The vehicle/driver
 // Excel must be uploaded every session; the list lives in memory only and is erased on Log out.
+// SECURITY: no inline event handlers anywhere; buttons inside generated tables are handled here from data attributes.
+document.addEventListener('change', e=>{ const t=e.target; if(t && t.classList && t.classList.contains('exc-sel')) setException(t.dataset.p, t.dataset.d, t.value); });
+document.addEventListener('click', e=>{
+  const b = e.target && e.target.closest ? e.target.closest('.ts-del, .nv-del') : null; if(!b) return;
+  if(b.classList.contains('ts-del')) deleteTimesheetCheck(b.dataset.key);
+  else deleteNoVehAssignment(b.dataset.w, b.dataset.d);
+});
+// SECURITY (defence in depth): anything inserted with innerHTML has event-handler attributes and javascript: links removed.
+(function(){
+  try{
+    const d = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+    if(!d || !d.set) return;
+    const clean = root=>{
+      const all = root.querySelectorAll ? root.querySelectorAll('*') : [];
+      all.forEach(el=>{
+        for(const a of Array.from(el.attributes)){
+          const n = a.name.toLowerCase();
+          if(n.startsWith('on')) el.removeAttribute(a.name);
+          else if((n==='href'||n==='src'||n==='xlink:href'||n==='action'||n==='formaction') && /^\s*(javascript|vbscript):/i.test(a.value)) el.removeAttribute(a.name);
+        }
+        if(el.tagName==='SCRIPT' || el.tagName==='IFRAME' || el.tagName==='OBJECT' || el.tagName==='EMBED') el.remove();
+      });
+    };
+    Object.defineProperty(Element.prototype, 'innerHTML', {configurable:true, enumerable:d.enumerable, get:d.get, set:function(v){ d.set.call(this, v); clean(this); }});
+  }catch(e){}
+})();
+// SECURITY: text that comes from uploaded files (names, places, schedule lines) is never allowed to carry markup.
+// Real names and addresses never contain < > or a back-tick, so they are removed the moment the text is read.
+function scrubText(s){ return String(s==null?'':s).replace(/[<>`]/g,''); }
+function scrubFields(o){ if(o && typeof o==='object'){ for(const k of Object.keys(o)){ if(typeof o[k]==='string') o[k]=scrubText(o[k]); else if(Array.isArray(o[k])) o[k]=o[k].map(x=>typeof x==='string'?scrubText(x):x); } } return o; }
 function getDriverLabels(){
   let stored = {};
   try{ stored = JSON.parse(localStorage.getItem(DRIVER_LABEL_KEY) || '{}') || {}; }
   catch(e){ stored = {}; }
+  Object.keys(stored).forEach(k=>{ stored[k] = scrubText(stored[k]); });
   return Object.assign({}, stored);
 }
 function setDriverLabel(vehicle, label){
   const labels = getDriverLabels();
-  if(label && label.trim()) labels[vehicle] = label.trim();
+  if(label && scrubText(label).trim()) labels[vehicle] = scrubText(label).trim();
   else delete labels[vehicle];
   localStorage.setItem(DRIVER_LABEL_KEY, JSON.stringify(labels));
 }
@@ -1966,6 +2076,7 @@ function parseDailyActivitySummaryText(text){
 // picture, but only works correctly if genuine duplicates -- the trips present in
 // BOTH files -- don't get double-counted, which is exactly what this prevents.
 function addTripsToVehicle(plate, newTrips, src){
+  try{ (newTrips||[]).forEach(scrubFields); plate = scrubText(plate); }catch(e){}
   if(!accumulatedRawByVehicle[plate]) accumulatedRawByVehicle[plate] = [];
   const byKey = new Map(accumulatedRawByVehicle[plate].map(t=>[tripDedupeKey(t), t]));
   newTrips.forEach(t=>{
@@ -4439,6 +4550,103 @@ function parseStackedWorkbook(wb){
 // RENDERING
 // =====================================================================
 
+// ---- Paid leave: a person listed under "Sick:" or "Annual Leave:" in the schedule is
+// paid 8 hours for that weekday (confirmed by the payroll rules). Held in memory only,
+// like the rest of the loaded data. If the vehicle still moved that day (or an IN/OUT
+// exists) nothing is added and the day is flagged instead, so a wrong list can never
+// quietly add pay on top of worked hours.
+let leaveDays = []; // [{name, date, type}]
+const LEAVE_PAID_HRS = 8;
+function parseScheduleLeave(text){
+  text = scrubText(text);
+  const out = []; let currentDate = null, pendingDay = null;
+  const setDate = (day, monthName)=>{
+    const month = MONTH_NAME_MAP[String(monthName).toLowerCase()];
+    if(!month) return;
+    const year = currentDate ? currentDate.split('-')[0] : scheduleDefaultYear();
+    currentDate = `${year}-${String(month).padStart(2,'0')}-${String(+day).padStart(2,'0')}`;
+  };
+  String(text||'').split('\n').forEach(raw=>{
+    const line = raw.trim(); if(!line) return;
+    let m = line.match(/for (\d{2})\/(\d{2})\/(\d{4})/);
+    if(m){ currentDate = `${m[3]}-${m[2]}-${m[1]}`; pendingDay = null; return; }
+    m = line.match(/^\w+day (\d{1,2})\w{2}\s*(\w+):?$/i);
+    if(m){ setDate(m[1], m[2]); pendingDay = null; return; }
+    m = line.match(/^\w+day (\d{1,2})\w{2}$/i); // heading cut across two lines: "Wednesday 21st" / "October:"
+    if(m){ pendingDay = m[1]; return; }
+    if(pendingDay){ const mm = line.match(/^(\w+):?$/); if(mm){ setDate(pendingDay, mm[1]); pendingDay = null; return; } pendingDay = null; }
+    m = line.match(/^(Sick|Annual\s+Leave)\s*:\s*(.*)$/i);
+    if(m && currentDate){
+      const type = /sick/i.test(m[1]) ? 'Sick leave' : 'Annual leave';
+      m[2].split(/\s*(?:,|\/|&|\band\b)\s*/i).map(x=>x.trim().replace(/[.\s]+$/,'')).filter(Boolean)
+        .forEach(n=>out.push({name:n, date:currentDate, type}));
+    }
+  });
+  return out;
+}
+function addLeaveDays(list){
+  let added = 0;
+  list.forEach(l=>{
+    if(!leaveDays.some(x=>x.date===l.date && x.name.toLowerCase()===l.name.toLowerCase())){ leaveDays.push(l); added++; }
+  });
+  return {added};
+}
+function knownPersonNames(){
+  const names = new Set();
+  Object.values(getDriverLabels()||{}).forEach(l=>{ const t=String(l||'').trim(); if(t) names.add(t); });
+  noVehWorkers.forEach(w=>names.add(w.name));
+  return [...names];
+}
+function leaveNameMatches(leaveName, person){
+  const norm = x=>String(x||'').toLowerCase().replace(/\./g,' ').replace(/\s+/g,' ').trim();
+  const L = norm(leaveName), P = norm(person);
+  if(!L || !P) return false;
+  const lt = L.split(' ');
+  if(lt.length>1 && lt[lt.length-1].length===1){ // "Dennis B": first name plus last initial
+    const pt = P.split(' ');
+    return pt[0]===lt.slice(0,-1).join(' ') && pt.length>1 && pt[pt.length-1][0]===lt[lt.length-1];
+  }
+  if(!(P===L || P.startsWith(L+' '))) return false;
+  // a bare first name that belongs to two different known people is ambiguous -- skip rather than guess
+  const same = knownPersonNames().map(norm).filter(n=>n===L || n.startsWith(L+' '));
+  return new Set(same).size<=1;
+}
+function leaveFor(person, dateStr){
+  return leaveDays.find(l=>l.date===dateStr && leaveNameMatches(l.name, person)) || null;
+}
+function applyLeaveToDayRows(dayRows, person){
+  dayRows.forEach(d=>{
+    if(d.weekend) return;
+    const lv = leaveFor(person, d.date); if(!lv) return;
+    if((d.hours && d.hours>0) || d.in || d.out){
+      d.notes = [d.notes, `${lv.type} listed in the schedule, but there is vehicle activity — ${LEAVE_PAID_HRS} h not added, check`].filter(Boolean).join(' · ');
+      return;
+    }
+    d.hours = LEAVE_PAID_HRS; d.leave = lv.type;
+    d.notes = [`${lv.type} — ${LEAVE_PAID_HRS} h paid`, d.notes].filter(Boolean).join(' · ');
+  });
+}
+function addLeaveToRoster(d, data){
+  leaveDays.forEach(l=>{
+    if(!leaveNameMatches(l.name, d.driver) || isWeekendDate(l.date) || !inDateFilter(l.date)) return;
+    const worked = data.some(v=>v.driver===d.driver && v.rows.some(r=>r.date===l.date && (r.in || r.out)));
+    if(worked) return;
+    if(inPeriod(l.date, RULES.period1)) d.p1 += LEAVE_PAID_HRS; else if(inPeriod(l.date, RULES.period2)) d.p2 += LEAVE_PAID_HRS; else return;
+    d.days += 1; d.leaveHrs = (d.leaveHrs||0) + LEAVE_PAID_HRS;
+  });
+}
+function leaveHrsForWorkers(names, fromDate, toDate, workedKeys){
+  let h = 0;
+  leaveDays.forEach(l=>{
+    if(isWeekendDate(l.date)) return;
+    if(fromDate && l.date<fromDate) return; if(toDate && l.date>toDate) return;
+    const who = names.find(n=>leaveNameMatches(l.name, n)); if(!who) return;
+    if(workedKeys.has(who+'|'+l.date)) return;
+    h += LEAVE_PAID_HRS;
+  });
+  return h;
+}
+
 function computeRoster(data){
   const byDriver = {};
   const exceptions = [];
@@ -4492,6 +4700,7 @@ function computeRoster(data){
     });
   });
   const roster = Object.values(byDriver).map(d=>{
+    addLeaveToRoster(d, data);
     // Main site = wherever the driver actually spent the most hours, not just the
     // address that appears on the most separate days
     let mainSite = d.lastSite || '—';
@@ -4505,6 +4714,7 @@ function computeRoster(data){
       weekendDayCount: d.weekendDayCount,
       excessiveMins: d.excessiveMins,
       days: d.days,
+      leaveHrs: d.leaveHrs||0,
       mainSite, lastSite: d.lastSite || '—',
       status: (d.p1+d.p2 > RULES.fortnightOtHrs) ? 'review' : 'ok',
     };
@@ -4572,7 +4782,7 @@ function renderRoster(data, roster){
     tr.dataset.driver = r.driver;
     const vehTags = r.vehicle.split(', ').map(v=>`<span class="veh-tag">${vLabel(v)}</span>`).join('');
     tr.innerHTML = `
-      <td>${r.driver}</td>
+      <td>${fxEsc(r.driver)}</td>
       <td>${vehTags}</td>
       <td class="num">${r.p1.toFixed(2)}</td>
       <td class="num">${r.p2.toFixed(2)}</td>
@@ -4756,7 +4966,7 @@ function setException(plate, date, val){
 function exceptionFor(plate, date){ return getExceptions()[plate+'|'+date] || ''; }
 function excSelectHtml(plate, date){
   const cur = exceptionFor(plate, date);
-  return `<div><select class="exc-sel" aria-label="Exception reason" onchange="setException(this.dataset.p,this.dataset.d,this.value)" data-p="${evEsc(plate)}" data-d="${date}"><option value="">No exception</option>${EXC_TYPES.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('')}</select></div>`;
+  return `<div><select class="exc-sel" aria-label="Exception reason" data-p="${evEsc(plate)}" data-d="${date}"><option value="">No exception</option>${EXC_TYPES.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('')}</select></div>`;
 }
 function inCellWithSite(r){
   const sa = siteArrivalFor(r.vehicle, r.rowRef);
@@ -5099,7 +5309,7 @@ function renderTimesheetCheck(){
       <td class="num">${e.gpsHrs!==null ? e.gpsHrs.toFixed(2) : '—'}</td>
       <td class="num" style="color:${isOver?'var(--red)':isUnder?'var(--amber)':'var(--ink)'}; font-weight:${isOver?'700':'400'};">${e.gapHrs!==null ? (e.gapHrs>0?'+':'')+e.gapHrs.toFixed(2) : '—'}</td>
       <td style="font-size:12px;">${e.flag}</td>
-      <td><button class="btn ghost small" data-idx="${i}" data-key="${e._key}" onclick="deleteTimesheetCheck('${e._key}')">Delete</button></td>
+      <td><button class="btn ghost small ts-del" data-idx="${i}" data-key="${fxEsc(e._key)}">Delete</button></td>
     </tr>`;
   }).join('') || `<tr><td colspan="11" style="text-align:center; color:var(--ink-soft); padding:20px;">No entries yet — add a claimed IN/OUT above to check it against the GPS record.</td></tr>`;
 }
@@ -6578,7 +6788,7 @@ function populateNovehWorkerSelect(){
   if(!selectedNoVehWorker || !noVehWorkers.find(w=>w.name===selectedNoVehWorker)){
     selectedNoVehWorker = noVehWorkers.length ? noVehWorkers[0].name : null;
   }
-  sel.innerHTML = noVehWorkers.map(w=>`<option value="${w.name}" ${w.name===selectedNoVehWorker?'selected':''}>${w.name}</option>`).join('')
+  sel.innerHTML = noVehWorkers.map(w=>`<option value="${fxEsc(w.name)}" ${w.name===selectedNoVehWorker?'selected':''}>${fxEsc(w.name)}</option>`).join('')
     || '<option value="">No workers added yet</option>';
 }
 
@@ -6659,10 +6869,10 @@ function withSchedSite(d, sched){
 function siteCellHtml(d){
   if(!d) return '';
   const parts = [];
-  if(d.sched) parts.push(`<b>Site (schedule):</b> ${d.sched}`);
-  if(d.inAddress) parts.push(`<b>In:</b> ${placeLabelText(d.inAddress)}`);
-  if(d.outAddress) parts.push(`<b>Out:</b> ${placeLabelText(d.outAddress)}`);
-  if(d.site) parts.push(`<b>Site:</b> ${d.site}`);
+  if(d.sched) parts.push(`<b>Site (schedule):</b> ${fxEsc(d.sched)}`);
+  if(d.inAddress) parts.push(`<b>In:</b> ${fxEsc(placeLabelText(d.inAddress))}`);
+  if(d.outAddress) parts.push(`<b>Out:</b> ${fxEsc(placeLabelText(d.outAddress))}`);
+  if(d.site) parts.push(`<b>Site:</b> ${fxEsc(d.site)}`);
   return parts.join('<br>');
 }
 function siteCellText(d){
@@ -6810,12 +7020,14 @@ function renderNoVehWorkers(){
     if(toDate && r.date > toDate) return false;
     return true;
   });
-  const totalHrs = rows.reduce((s,r)=>s+Math.round((r.net||0)*100)/100,0);
+  const leaveNames = showAll ? noVehWorkers.map(w=>w.name) : [selectedNoVehWorker];
+  const leaveHrs = leaveHrsForWorkers(leaveNames, fromDate, toDate, new Set(allRows.filter(r=>r.net>0).map(r=>r.workerName+'|'+r.date)));
+  const totalHrs = rows.reduce((s,r)=>s+Math.round((r.net||0)*100)/100,0) + leaveHrs;
   const missing = rows.filter(r=>r.noData || r.net===null).length;
   const uniqueWorkers = new Set(rows.map(r=>r.workerName)).size;
   kpis.innerHTML = `
     <div class="kpi"><div class="num">${rows.length}</div><div class="lbl">${showAll ? `Worker-days shown (${uniqueWorkers} workers)` : 'Days assigned'}</div></div>
-    <div class="kpi"><div class="num">${totalHrs.toFixed(2)}</div><div class="lbl">${showAll ? 'Total hrs — everyone shown' : `Total hrs — ${selectedNoVehWorker}`}</div></div>
+    <div class="kpi"><div class="num">${totalHrs.toFixed(2)}</div><div class="lbl">${(showAll ? 'Total hrs — everyone shown' : `Total hrs — ${selectedNoVehWorker}`) + (leaveHrs ? ` (incl. ${leaveHrs} h paid leave)` : '')}</div></div>
     <div class="kpi ${missing?'warn':''}"><div class="num">${missing}</div><div class="lbl">Days with no data for that vehicle</div></div>
   `;
   const rangeLabel = fromDate && toDate ? `between ${fromDate} and ${toDate}` : fromDate ? `from ${fromDate} onward` : toDate ? `up to ${toDate}` : '';
@@ -6829,7 +7041,7 @@ function renderNoVehWorkers(){
       <td class="num">${r.out || (r.noData ? '<span style="color:var(--red);">No data</span>' : '<span style="color:var(--red);">Not recorded</span>')}</td>
       <td class="num">${r.net!==null ? r.net.toFixed(2) : '—'}</td>
       <td class="loc">${r.site ? siteCellHtml(r.site) : '—'}</td>
-      <td><button class="btn ghost small" onclick="deleteNoVehAssignment('${r.workerName}','${r.date}')">Remove</button></td>
+      <td><button class="btn ghost small nv-del" data-w="${fxEsc(r.workerName)}" data-d="${fxEsc(r.date)}">Remove</button></td>
     </tr>
   `).join('') || `<tr><td colspan="${showAll?9:8}" style="text-align:center; color:var(--ink-soft); padding:20px;">${rangeLabel ? `No assignments ${rangeLabel}.` : 'No days assigned yet.'}</td></tr>`;
 }
@@ -6888,7 +7100,7 @@ document.getElementById('noveh-add-worker-btn').addEventListener('click', ()=>{
     statusEl.textContent = 'That worker already exists.';
     return;
   }
-  noVehWorkers.push({name, assignments: []});
+  noVehWorkers.push({name: scrubText(name), assignments: []});
   selectedNoVehWorker = name;
   nameEl.value = '';
   statusEl.textContent = `Added ${name}.`;
@@ -6937,7 +7149,7 @@ document.getElementById('noveh-roster-file-input').addEventListener('change', as
     names.forEach(name=>{
       if(matchesKnownDriver(name)){ alreadyHasVehicle++; return; }
       if(noVehWorkers.find(w=>w.name.toLowerCase()===name.toLowerCase())){ alreadyListed++; return; }
-      noVehWorkers.push({name, assignments: []});
+      noVehWorkers.push({name: scrubText(name), assignments: []});
       added++;
     });
     if(added>0) selectedNoVehWorker = noVehWorkers[noVehWorkers.length-1].name;
@@ -7123,6 +7335,7 @@ function plannedStartFor(entry, memberName){
   return entry.startTime ? {time:entry.startTime, office:false} : null;
 }
 function parseScheduleTextForSiteTeams(text){
+  text = scrubText(text);
   const lines = text.split('\n');
   let currentDate = null;
   const entries = [];
@@ -7258,7 +7471,7 @@ function applyScheduleTextToNoVehWorkers(text){
       if(matchNameToVehicle(name)){ hadOwnVehicle++; return; } // has their own vehicle -- GPS covers them directly
       const candidates = choice.list;
       let worker = noVehWorkers.find(w=>w.name.toLowerCase()===name.toLowerCase());
-      if(!worker){ worker = {name, assignments: []}; noVehWorkers.push(worker); }
+      if(!worker){ worker = {name: scrubText(name), assignments: []}; noVehWorkers.push(worker); }
       if(candidates.length===1){
         worker.assignments = worker.assignments.filter(a=>a.date!==date);
         worker.assignments.push({date, vehicle: candidates[0], supervisorLabel: (members[0] && members[0].toLowerCase()!==name.toLowerCase()) ? members[0] : null});
@@ -7304,7 +7517,7 @@ document.getElementById('noveh-bulk-file-input').addEventListener('change', asyn
     parsed.entries.forEach(en=>{
       const candidates = findVehicleForSiteOnDate(en.site, en.date) || [];
       let worker = noVehWorkers.find(w=>w.name.toLowerCase()===en.worker.toLowerCase());
-      if(!worker){ worker = {name: en.worker, assignments: []}; noVehWorkers.push(worker); }
+      if(!worker){ worker = {name: scrubText(en.worker), assignments: []}; noVehWorkers.push(worker); }
       if(candidates.length === 1){
         worker.assignments = worker.assignments.filter(a=>a.date!==en.date);
         worker.assignments.push({date: en.date, vehicle: candidates[0], supervisorLabel: en.supervisor});
@@ -7375,11 +7588,12 @@ document.getElementById('noveh-schedule-file-input').addEventListener('change', 
     // not just the no-vehicle-worker matching
     const knownSitesResult = extractKnownSitesFromScheduleText(text);
     saveScheduleEntries(parseScheduleTextForSiteTeams(text));
+    const leaveRes = addLeaveDays(parseScheduleLeave(text));
     const autoLink = autoLinkDrivers();
     evCache = null;
     selectedNoVehWorker = noVehWorkers.length ? noVehWorkers[noVehWorkers.length-1].name : null;
     statusEl.className = 'ok';
-    statusEl.textContent = `${result.siteTeamCount} site/day entries read. ${result.matched} worker-day(s) matched cleanly, ${result.ambiguous} ambiguous (best guess used), ${result.unmatched} with no vehicle found, ${result.hadOwnVehicle} skipped (already have their own vehicle). ${startTimeResult.applied} vehicle-day(s) given the exact time the schedule called the crew for (${startTimeResult.bySite} of them found from GPS at the site).${Object.keys(getDriverLabels()).length ? '' : ' Tip: load the vehicle list (vehicle with drivers) so reports show driver names instead of plates.'} ${knownSitesResult.added} new known site(s) added from the schedule's own stated locations.` + (autoLink ? ` Drivers linked to vehicles from the uploads: ${autoLink.linked} linked, ${autoLink.ambiguous} unclear, ${autoLink.none} without enough matching days.` : '') + cutWarn;
+    statusEl.textContent = `${result.siteTeamCount} site/day entries read. ${result.matched} worker-day(s) matched cleanly, ${result.ambiguous} ambiguous (best guess used), ${result.unmatched} with no vehicle found, ${result.hadOwnVehicle} skipped (already have their own vehicle). ${startTimeResult.applied} vehicle-day(s) given the exact time the schedule called the crew for (${startTimeResult.bySite} of them found from GPS at the site).${Object.keys(getDriverLabels()).length ? '' : ' Tip: load the vehicle list (vehicle with drivers) so reports show driver names instead of plates.'} ${knownSitesResult.added} new known site(s) added from the schedule's own stated locations.` + (autoLink ? ` Drivers linked to vehicles from the uploads: ${autoLink.linked} linked, ${autoLink.ambiguous} unclear, ${autoLink.none} without enough matching days.` : '') + (leaveRes.added ? ` ${leaveRes.added} sick / annual-leave day(s) read \u2014 each adds ${LEAVE_PAID_HRS} paid hours on that person's report.` : '') + cutWarn;
     const combinedLog = [...result.log, ...startTimeResult.log];
     if(combinedLog.length){
       logEl.style.display = 'block';
@@ -7868,17 +8082,8 @@ function renderTrackMap(){
   mapState.proj = {X, Y, inv, sc, la0, la1, lo0, lo1, ox, oy, W, H};
   let g = `<svg id="map-canvas" viewBox="0 0 ${W} ${H}" width="100%" style="min-width:560px;max-width:1100px;background:var(--paper);border-radius:4px;" role="img" aria-label="GPS track map for ${fxEsc(plateOf(plate))} on ${date}">`;
   // street map tiles (OpenStreetMap) or, if switched off, a coordinate grid
-  const useTiles = document.getElementById('map-tiles').checked;
-  if(useTiles){
-    const t0x=Math.floor(ox/TS), t1x=Math.floor((ox+W/sc)/TS), t0y=Math.floor(oy/TS), t1y=Math.floor((oy+H/sc)/TS), n=Math.pow(2,zt);
-    g += `<rect width="${W}" height="${H}" fill="#e8e4da"/>`;
-    for(let tx=t0x; tx<=t1x; tx++) for(let ty=t0y; ty<=t1y; ty++){ if(ty<0||ty>=n) continue; const txw=((tx%n)+n)%n;
-      g += `<image href="https://tile.openstreetmap.org/${zt}/${txw}/${ty}.png" x="${((tx*TS-ox)*sc).toFixed(2)}" y="${((ty*TS-oy)*sc).toFixed(2)}" width="${(TS*sc+0.6).toFixed(2)}" height="${(TS*sc+0.6).toFixed(2)}" onload="window.__tileOk=(window.__tileOk||0)+1" onerror="window.__tileBad=(window.__tileBad||0)+1;this.style.display='none'"/>`; }
-    g += `<text x="${W-6}" y="${H-5}" font-size="10" text-anchor="end" fill="#333" stroke="#fff" stroke-width="3" paint-order="stroke">© OpenStreetMap contributors</text>`;
-    window.__tileOk = 0; window.__tileBad = 0;
-  } else {
-    g += `<rect width="${W}" height="${H}" fill="#f1ede2"/>`;
-  }
+  const useTiles = false; // no outside map pictures: nothing about where vehicles drove is ever sent to another website
+  g += `<rect width="${W}" height="${H}" fill="#f1ede2"/>`;
   g += '<g id="map-layer">';
   g += mapBaseLayers(X, Y, W, H, {la0,la1,lo0,lo1}, document.getElementById('map-roads').checked, document.getElementById('map-names').checked, document.getElementById('map-subs').checked, useTiles);
   // other vehicles, faint
@@ -7921,7 +8126,6 @@ function renderTrackMap(){
   note.textContent = `${pts.length} GPS points · about ${(dist/1000).toFixed(1)} km along the track · top speed ${mx.toFixed(0)} km/h · ${stops.length} stop(s) of 5 minutes or more${others.length?` · ${others.length} other vehicle(s) shown`:''}. Speed colours: grey stopped, green under 30, amber 30 to 60, red over 60 km/h.`;
   renderMapLinks(pts, stops);
   clearTimeout(mapState.tileTimer);
-  if(useTiles) mapState.tileTimer = setTimeout(()=>{ if(!(window.__tileOk>0) && document.getElementById('map-canvas')){ document.getElementById('map-note').innerHTML += '<br>OpenStreetMap pictures are not available in this view, so the roads shown are the ones your own vehicles drove.'; } }, 2500);
   const sl = document.getElementById('map-slider'); sl.max = String(pts.length-1); sl.value = '0'; mapState.idx = 0;
   setMapIndex(0);
   const svg = document.getElementById('map-canvas'), layer = document.getElementById('map-layer');
@@ -8031,7 +8235,7 @@ document.getElementById('map-play').addEventListener('click', ()=>{
   }, 80);
 });
 document.getElementById('map-slider').addEventListener('input', e=>{ stopMapPlay(); setMapIndex(+e.target.value); });
-['map-speed','map-stops','map-others','map-pins','map-tiles','map-roads','map-names','map-subs','map-extent'].forEach(id=>document.getElementById(id).addEventListener('change', renderTrackMap));
+['map-speed','map-stops','map-others','map-pins','map-roads','map-names','map-subs','map-extent'].forEach(id=>document.getElementById(id).addEventListener('change', renderTrackMap));
 
 function parseCommandDate(t){
   const iso = t.match(/\b(20\d\d-\d\d-\d\d)\b/); if(iso) return iso[1];
@@ -8443,6 +8647,7 @@ function saveScheduleEntries(entries){
 }
 function wipeEvidenceStorage(){
   [OVERRIDE_KEY, VERIFIED_KEY, SCHEDULE_KEY, EXC_KEY, FUEL_TYPE_KEY, EXTRA_FUEL_KEY].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+  leaveDays = [];
 }
 
 function tmin(d){ return d.getUTCHours()*60 + d.getUTCMinutes() + d.getUTCSeconds()/60; }
@@ -8810,7 +9015,9 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSetup(); });
 
 // ---- tabs ----
 const ALL_TABS = ['all', 'day', 'single', 'check', 'fuel', 'review', 'noveh', 'pay', 'route', 'ask'];
+const PAGE_HEADS = {all:['Payroll','All vehicles'], day:['Daily','Day view'], single:['Vehicle','Single vehicle'], check:['Checks','Timesheet check'], fuel:['Checks','Fuel check'], review:['Checks','Review queue'], noveh:['Workers','Workers without a vehicle'], pay:['Payroll','Pay run'], route:['Route','Route & voice'], ask:['Help & ask','Ask why']};
 function activateTab(name){
+  try{ const h = PAGE_HEADS[name]; if(h){ document.getElementById('page-eyebrow').textContent = h[0]; document.getElementById('page-title').textContent = h[1]; } }catch(e){}
   ALL_TABS.forEach(t=>{
     document.getElementById('tab-btn-'+t).classList.toggle('active', t===name);
     document.getElementById('tab-'+t).style.display = t===name ? 'block' : 'none';
@@ -9399,6 +9606,7 @@ function buildOneTimesheetPage(r, periodStart, periodEnd, periodLabel){
     });
     start.setUTCDate(start.getUTCDate()+1);
   }
+  applyLeaveToDayRows(dayRows, r.driver);
   const totalHrs = dayRows.reduce((s,d)=>s+(d.weekend ? 0 : Math.round((d.hours||0)*100)/100),0); // each row is rounded to 2 decimals first, so the total equals the sum of the hours shown on the page // weekends are shown but never counted
 
   const rowsHtml = dayRows.map(d=>{
@@ -9408,7 +9616,7 @@ function buildOneTimesheetPage(r, periodStart, periodEnd, periodLabel){
     // stands out, not just one word
     const rowStyle = d.weekend ? 'background:#fbdede;' : '';
     const dayTextStyle = d.weekend ? 'color:#a11; font-weight:700;' : '';
-    const breakShown = (d.hours!==null && (parseTime(d.out)-parseTime(d.in)) > RULES.breakThresholdHrs) ? '30min' : '';
+    const breakShown = (d.hours!==null && d.in && d.out && (parseTime(d.out)-parseTime(d.in)) > RULES.breakThresholdHrs) ? '30min' : '';
     return `<tr style="${rowStyle}">
       <td style="${dayTextStyle}">${d.day}</td>
       <td style="${dayTextStyle}">${d.date.slice(8,10)}/${d.date.slice(5,7)}/${d.date.slice(0,4)}</td>
@@ -9418,7 +9626,7 @@ function buildOneTimesheetPage(r, periodStart, periodEnd, periodLabel){
       <td style="${d.weekend?'':'background:#e5f3ea;'} font-weight:600;">${d.hours!==null?d.hours.toFixed(2).replace(/\.00$/,''):''}</td>
       <td style="${d.weekend?'':'background:#f6d9d3;'}"></td>
       <td style="${d.weekend?'':'background:#eaf3fb;'} font-size:10.5px; line-height:1.45;">${siteCellHtml(d.site)}</td>
-      <td>${d.notes||''}</td>
+      <td>${fxEsc(d.notes||'')}</td>
       <td></td>
     </tr>`;
   }).join('');
@@ -9433,7 +9641,7 @@ function buildOneTimesheetPage(r, periodStart, periodEnd, periodLabel){
     </div>
     <table class="ts-meta">
       <tr><td class="lbl">Period:</td><td>${periodLabel}</td></tr>
-      <tr><td class="lbl">Employee:</td><td>${r.driver}</td></tr>
+      <tr><td class="lbl">Employee:</td><td>${fxEsc(r.driver)}</td></tr>
     </table>
     <table class="ts-table">
       <thead><tr>
@@ -9479,6 +9687,7 @@ function buildOneTimesheetPageForNoVehWorker(worker, periodStart, periodEnd, per
     });
     start.setUTCDate(start.getUTCDate()+1);
   }
+  applyLeaveToDayRows(dayRows, worker.name);
   const totalHrs = dayRows.reduce((s,d)=>s+(d.weekend ? 0 : Math.round((d.hours||0)*100)/100),0); // each row is rounded to 2 decimals first, so the total equals the sum of the hours shown on the page // weekends are shown but never counted
 
   const rowsHtml = dayRows.map(d=>{
@@ -9494,8 +9703,8 @@ function buildOneTimesheetPageForNoVehWorker(worker, periodStart, periodEnd, per
       <td style="${d.weekend?'':'background:#e5f3ea;'} font-weight:600;">${d.hours!==null?d.hours.toFixed(2).replace(/\.00$/,''):''}</td>
       <td style="${d.weekend?'':'background:#f6d9d3;'}"></td>
       <td style="${d.weekend?'':'background:#eaf3fb;'} font-size:10.5px; line-height:1.45;">${siteCellHtml(d.site)}</td>
-      <td>${d.notes||''}</td>
-      <td style="font-size:10.5px; font-weight:600;">${d.supervisor||''}</td>
+      <td>${fxEsc(d.notes||'')}</td>
+      <td style="font-size:10.5px; font-weight:600;">${fxEsc(d.supervisor||'')}</td>
     </tr>`;
   }).join('');
 
@@ -9509,7 +9718,7 @@ function buildOneTimesheetPageForNoVehWorker(worker, periodStart, periodEnd, per
     </div>
     <table class="ts-meta">
       <tr><td class="lbl">Period:</td><td>${periodLabel}</td></tr>
-      <tr><td class="lbl">Employee:</td><td>${worker.name}</td></tr>
+      <tr><td class="lbl">Employee:</td><td>${fxEsc(worker.name)}</td></tr>
     </table>
     <table class="ts-table">
       <thead><tr>
@@ -9570,6 +9779,7 @@ function buildOneTimesheetPageDocxSection(r, periodStart, periodEnd, periodLabel
     });
     start.setUTCDate(start.getUTCDate()+1);
   }
+  applyLeaveToDayRows(dayRows, r.driver);
   const totalHrs = dayRows.reduce((s,d)=>s+(d.weekend ? 0 : Math.round((d.hours||0)*100)/100),0); // each row is rounded to 2 decimals first, so the total equals the sum of the hours shown on the page // weekends are shown but never counted
 
   const headerCells = ['Day','Date','In','Break Time','Out','Hours','Admin','In address (arriving) / Out address (leaving) / Site','Important Notes','Supervisor\u2019s Name'];
@@ -9584,7 +9794,7 @@ function buildOneTimesheetPageDocxSection(r, periodStart, periodEnd, periodLabel
 
   const bodyRows = dayRows.map(d=>{
     const weekendFill = d.weekend ? 'FBDEDE' : undefined;
-    const breakShown = (d.hours!==null && (parseTime(d.out)-parseTime(d.in)) > RULES.breakThresholdHrs) ? '30min' : '';
+    const breakShown = (d.hours!==null && d.in && d.out && (parseTime(d.out)-parseTime(d.in)) > RULES.breakThresholdHrs) ? '30min' : '';
     let ci = 0;
     const cellText = (text, cellFill)=>new TableCell({
       width: {size:TS_W[ci++ % 10], type:WidthType.DXA},
@@ -9657,6 +9867,7 @@ function buildOneTimesheetPageDocxSectionForNoVehWorker(worker, periodStart, per
     });
     start.setUTCDate(start.getUTCDate()+1);
   }
+  applyLeaveToDayRows(dayRows, worker.name);
   const totalHrs = dayRows.reduce((s,d)=>s+(d.weekend ? 0 : Math.round((d.hours||0)*100)/100),0); // each row is rounded to 2 decimals first, so the total equals the sum of the hours shown on the page // weekends are shown but never counted
 
   const headerCells = ['Day','Date','In','Break Time','Out','Hours','Admin','In address (arriving) / Out address (leaving) / Site','Important Notes','Supervisor\u2019s Name'];
