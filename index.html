@@ -7227,7 +7227,7 @@ document.getElementById('noveh-add-range-btn').addEventListener('click', ()=>{
 // ---- bulk upload: date + site + supervisor + worker(s), matched to a vehicle by
 // looking up which vehicle's GPS record shows that site on that date, not by name ----
 function siteStreetKeys(siteText){
-  // the main address, plus any second address written in brackets ("Grafton DHB facility (80 Hastie Avenue, Mangere)")
+  // the main address, plus any second address written in brackets ("Sample Facility (10 Example Street, Testville)")
   const keys = new Set();
   const main = normalizeStreetText(extractStreetFromFreeText(siteText));
   if(main) keys.add(main);
