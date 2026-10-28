@@ -1859,6 +1859,11 @@ function describeFlags(flagStr){
   }).join(' · ');
 }
 
+// name first: "Sam J — Vehicle 2"; just the vehicle when there is no (different) driver name
+function nameVeh(p, shown){
+  const d = driverFor(p), v = shown!==undefined ? shown : vLabel(p);
+  return d!==p ? d+' — '+v : v;
+}
 function driverFor(vehicle){
   const labels = getDriverLabels();
   const lab = labels[vehicle];
@@ -4818,7 +4823,7 @@ function renderInOutLog(data){
       if(typeof va === 'string'){ va=va.toLowerCase(); vb=String(vb).toLowerCase(); return va<vb?-mul:va>vb?mul:0; }
       return (va-vb)*mul;
     });
-    html += `<tr class="date-group-row"><td colspan="7"><span class="veh-tag" style="background:var(--card);">${vLabel(vehicle)}</span> ${driverFor(vehicle)!==vehicle ? driverFor(vehicle) : ''}</td></tr>`;
+    html += `<tr class="date-group-row"><td colspan="7">${driverFor(vehicle)!==vehicle ? '<b>'+driverFor(vehicle)+'</b> ' : ''}<span class="veh-tag" style="background:var(--card);">${vLabel(vehicle)}</span></td></tr>`;
     group.forEach(r=>{
       html += `
     <tr class="day-row" data-plate="${evEsc(r.vehicle)}" data-date="${r.date}">
@@ -4844,7 +4849,7 @@ function populateSingleVehicleChecks(data){
   box.innerHTML = vehicles.map(v=>`
     <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
       <input type="checkbox" class="single-vehicle-check" value="${v}" ${selectedVehicles.has(v)?'checked':''}>
-      ${vLabel(v)}${driverFor(v)!==v ? ' — '+driverFor(v) : ''}
+      ${nameVeh(v)}
     </label>
   `).join('');
   box.querySelectorAll('.single-vehicle-check').forEach(cb=>{
@@ -6559,7 +6564,7 @@ let selectedNoVehWorker = null;
 
 function populateNovehVehicleSelects(){
   const vehicles = [...new Set(currentData.map(v=>v.vehicle))].sort((a,b)=>a.localeCompare(b));
-  const opts = vehicles.map(v=>`<option value="${v}">${vLabel(v)}${driverFor(v)!==v ? ' — '+driverFor(v) : ''}</option>`).join('');
+  const opts = vehicles.map(v=>`<option value="${v}">${nameVeh(v)}</option>`).join('');
   ['noveh-single-vehicle','noveh-range-vehicle'].forEach(id=>{
     const sel = document.getElementById(id);
     const prev = sel.value;
@@ -6788,7 +6793,7 @@ function refreshUsualBox(){
   const sel = document.getElementById('noveh-usual-vehicle'); if(!sel) return;
   const w = noVehWorkers.find(x=>x.name===selectedNoVehWorker);
   const vehicles = [...new Set(currentData.map(v=>v.vehicle))].sort();
-  sel.innerHTML = vehicles.map(v=>`<option value="${v}">${vLabel(v)}${driverFor(v)!==v?' — '+driverFor(v):''}</option>`).join('');
+  sel.innerHTML = vehicles.map(v=>`<option value="${v}">${nameVeh(v)}</option>`).join('');
   const u = w ? usualVehicleOf(w) : ''; if(u && vehicles.includes(u)) sel.value = u;
 }
 document.getElementById('noveh-usual-fill').addEventListener('click', ()=>{
@@ -7705,7 +7710,7 @@ if('speechSynthesis' in window){ try{ speechSynthesis.getVoices(); speechSynthes
 function renderRoute(){
   const vs = document.getElementById('route-vehicle'); if(!vs) return;
   const plates = currentData.map(v=>v.vehicle).sort();
-  const pv = vs.value; vs.innerHTML = plates.map(p=>`<option value="${p}">${fxEsc(plateOf(p))}${driverFor(p)!==p?' — '+fxEsc(driverFor(p)):''}</option>`).join('');
+  const pv = vs.value; vs.innerHTML = plates.map(p=>`<option value="${p}">${fxEsc(nameVeh(p, plateOf(p)))}</option>`).join('');
   if(plates.includes(pv)) vs.value = pv;
   const v = currentData.find(x=>x.vehicle===vs.value); const ds = document.getElementById('route-date');
   const pd = ds.value; const dates = v ? v.rows.map(r=>r.date).sort() : [];
@@ -9973,7 +9978,7 @@ function openDayModal(plate, date){
   }).join('');
   const body = `
     <div class="dm-head">
-      <div><div class="dm-title">${evEsc(vLabel(plate))}${driverFor(plate)!==plate?' · '+evEsc(driverFor(plate)):''}</div>
+      <div><div class="dm-title">${evEsc(nameVeh(plate))}</div>
       <div class="dm-sub">${dateWithDay(date)} · quality score <b class="score s-${row.score>=85?'good':row.score>=65?'mid':'bad'}">${row.score ?? '—'}</b>/100</div></div>
       <div class="dm-actions">
         <button type="button" class="btn small ${ver?'':'ghost'}" id="dm-verify">${ver?'&#10003; Verified (click to undo)':'Mark as verified'}</button>
@@ -10120,7 +10125,7 @@ function renderDayView(){
   dsel.innerHTML = dates.map(d=>`<option value="${d}" ${d===dayViewDate?'selected':''}>${evEsc(dateWithDay(d))}</option>`).join('');
   const plates = currentData.map(v=>v.vehicle).sort((a,b)=>vLabel(a).localeCompare(vLabel(b)));
   if(dayViewVeh!=='all' && !plates.includes(dayViewVeh)) dayViewVeh = 'all';
-  vsel.innerHTML = `<option value="all">All vehicles</option>` + plates.map(p=>`<option value="${evEsc(p)}" ${p===dayViewVeh?'selected':''}>${evEsc(vLabel(p))}${driverFor(p)!==p?' — '+evEsc(driverFor(p)):''}</option>`).join('');
+  vsel.innerHTML = `<option value="all">All vehicles</option>` + plates.map(p=>`<option value="${evEsc(p)}" ${p===dayViewVeh?'selected':''}>${evEsc(nameVeh(p))}</option>`).join('');
   evCache = null;
   const items = [];
   currentData.forEach(v=>{
@@ -10142,12 +10147,12 @@ function renderDayView(){
     (r.trips||[]).forEach(t=>{ seg += `<span class="tl-seg drive" style="left:${pc(t.s)}%;width:${Math.max(0.4,(t.e-t.s)/span*100).toFixed(2)}%" title="Driving ${minToHM(t.s)}-${minToHM(t.e)}: ${evEsc(t.from)} to ${evEsc(t.to)}"></span>`; });
     if(r.in) seg += `<span class="tl-mark in" style="left:${pc(parseTime(r.in)*60)}%"></span>`;
     if(r.out) seg += `<span class="tl-mark out" style="left:${pc(parseTime(r.out)*60)}%"></span>`;
-    return `<div class="lane day-row" data-plate="${evEsc(v.vehicle)}" data-date="${r.date}"><div class="lane-lbl"><span class="veh-tag">${evEsc(vLabel(v.vehicle))}</span> ${evEsc(driverFor(v.vehicle)!==v.vehicle?driverFor(v.vehicle):'')}</div><div class="tl-track lane-track">${seg}</div></div>`;
+    return `<div class="lane day-row" data-plate="${evEsc(v.vehicle)}" data-date="${r.date}"><div class="lane-lbl">${driverFor(v.vehicle)!==v.vehicle?'<b>'+evEsc(driverFor(v.vehicle))+'</b> ':''}<span class="veh-tag">${evEsc(vLabel(v.vehicle))}</span></div><div class="tl-track lane-track">${seg}</div></div>`;
   }).join('');
   const rowsHtml = items.map(({v,r})=>{
     const {net} = dayHours(r);
     return `<tr class="day-row" data-plate="${evEsc(v.vehicle)}" data-date="${r.date}">
-      <td><span class="veh-tag">${evEsc(vLabel(v.vehicle))}</span></td><td>${evEsc(driverFor(v.vehicle)!==v.vehicle?driverFor(v.vehicle):'—')}</td>
+      <td>${evEsc(driverFor(v.vehicle)!==v.vehicle?driverFor(v.vehicle):'—')}</td><td><span class="veh-tag">${evEsc(vLabel(v.vehicle))}</span></td>
       ${timeCell(r.in, confOf(r,'in'))}${timeCell(r.out, confOf(r,'out'))}
       <td class="num">${net!==null?net.toFixed(2):'—'}</td>
       <td class="loc">${evEsc(placeLabelText(r.first_loc)||'—')}</td><td class="loc">${evEsc(placeLabelText(r.final_loc)||'—')}</td>
@@ -10164,7 +10169,7 @@ function renderDayView(){
     </div>
     <div class="lanes"><div class="lane axis"><div class="lane-lbl"></div><div class="tl-track lane-track" style="background:none;height:18px;margin:0;">${ticks}</div></div>${lanes}
       <div class="tl-legend" style="margin-top:6px;"><span><i class="sw k-drive"></i>Driving</span><span><i class="sw k-site"></i>Work site</span><span><i class="sw k-depot"></i>Office / depot</span><span><i class="sw k-home"></i>Home</span><span><i class="sw k-other"></i>Other stop</span><span style="color:var(--green)">| IN</span><span style="color:var(--red)">| OUT</span></div></div>
-    <div class="table-card" style="margin-top:10px;"><table><thead><tr><th>Vehicle</th><th>Driver</th><th class="num">IN</th><th class="num">OUT</th><th class="num">Net hrs</th><th>In address</th><th>Out address</th><th class="num">Score</th><th>Notes</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>
+    <div class="table-card" style="margin-top:10px;"><table><thead><tr><th>Driver</th><th>Vehicle</th><th class="num">IN</th><th class="num">OUT</th><th class="num">Net hrs</th><th>In address</th><th>Out address</th><th class="num">Score</th><th>Notes</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>
     ${idle.length?`<p class="muted" style="margin-top:8px;">No activity: ${idle.map(p=>evEsc(vLabel(p))).join(', ')}</p>`:''}`;
 }
 function dayViewStep(dir){
