@@ -6810,7 +6810,7 @@ function renderNoVehWorkers(){
     if(toDate && r.date > toDate) return false;
     return true;
   });
-  const totalHrs = rows.reduce((s,r)=>s+(r.net||0),0);
+  const totalHrs = rows.reduce((s,r)=>s+Math.round((r.net||0)*100)/100,0);
   const missing = rows.filter(r=>r.noData || r.net===null).length;
   const uniqueWorkers = new Set(rows.map(r=>r.workerName)).size;
   kpis.innerHTML = `
@@ -7401,7 +7401,7 @@ document.getElementById('noveh-export-btn').addEventListener('click', async ()=>
   const statusEl = document.getElementById('noveh-export-status');
   if(!worker || worker.assignments.length===0){ statusEl.textContent = 'No days assigned yet.'; return; }
   const rows = worker.assignments.map(computeNoVehAssignmentRow).sort((a,b)=> a.date < b.date ? -1 : 1);
-  const totalHrs = rows.reduce((s,r)=>s+(r.net||0),0);
+  const totalHrs = rows.reduce((s,r)=>s+Math.round((r.net||0)*100)/100,0);
   const esc = (s)=> `"${String(s||'').replace(/"/g,'""')}"`;
   const lines = [`Worker,${esc(worker.name)}`, ''];
   lines.push('Date,Supervisor,Vehicle,IN,OUT,Net hours,In address (arriving),Out address (leaving),Site');
@@ -9399,7 +9399,7 @@ function buildOneTimesheetPage(r, periodStart, periodEnd, periodLabel){
     });
     start.setUTCDate(start.getUTCDate()+1);
   }
-  const totalHrs = dayRows.reduce((s,d)=>s+(d.weekend ? 0 : (d.hours||0)),0); // weekends are shown but never counted
+  const totalHrs = dayRows.reduce((s,d)=>s+(d.weekend ? 0 : Math.round((d.hours||0)*100)/100),0); // each row is rounded to 2 decimals first, so the total equals the sum of the hours shown on the page // weekends are shown but never counted
 
   const rowsHtml = dayRows.map(d=>{
     // weekend rows get a clear full-row red tint, not just red text on one cell --
@@ -9479,7 +9479,7 @@ function buildOneTimesheetPageForNoVehWorker(worker, periodStart, periodEnd, per
     });
     start.setUTCDate(start.getUTCDate()+1);
   }
-  const totalHrs = dayRows.reduce((s,d)=>s+(d.weekend ? 0 : (d.hours||0)),0); // weekends are shown but never counted
+  const totalHrs = dayRows.reduce((s,d)=>s+(d.weekend ? 0 : Math.round((d.hours||0)*100)/100),0); // each row is rounded to 2 decimals first, so the total equals the sum of the hours shown on the page // weekends are shown but never counted
 
   const rowsHtml = dayRows.map(d=>{
     const rowStyle = d.weekend ? 'background:#fbdede;' : '';
@@ -9570,7 +9570,7 @@ function buildOneTimesheetPageDocxSection(r, periodStart, periodEnd, periodLabel
     });
     start.setUTCDate(start.getUTCDate()+1);
   }
-  const totalHrs = dayRows.reduce((s,d)=>s+(d.weekend ? 0 : (d.hours||0)),0); // weekends are shown but never counted
+  const totalHrs = dayRows.reduce((s,d)=>s+(d.weekend ? 0 : Math.round((d.hours||0)*100)/100),0); // each row is rounded to 2 decimals first, so the total equals the sum of the hours shown on the page // weekends are shown but never counted
 
   const headerCells = ['Day','Date','In','Break Time','Out','Hours','Admin','In address (arriving) / Out address (leaving) / Site','Important Notes','Supervisor\u2019s Name'];
   const headRow = new TableRow({
@@ -9657,7 +9657,7 @@ function buildOneTimesheetPageDocxSectionForNoVehWorker(worker, periodStart, per
     });
     start.setUTCDate(start.getUTCDate()+1);
   }
-  const totalHrs = dayRows.reduce((s,d)=>s+(d.weekend ? 0 : (d.hours||0)),0); // weekends are shown but never counted
+  const totalHrs = dayRows.reduce((s,d)=>s+(d.weekend ? 0 : Math.round((d.hours||0)*100)/100),0); // each row is rounded to 2 decimals first, so the total equals the sum of the hours shown on the page // weekends are shown but never counted
 
   const headerCells = ['Day','Date','In','Break Time','Out','Hours','Admin','In address (arriving) / Out address (leaving) / Site','Important Notes','Supervisor\u2019s Name'];
   const headRow = new TableRow({
