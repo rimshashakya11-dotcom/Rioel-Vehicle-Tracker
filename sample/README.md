@@ -1,12 +1,16 @@
 # Sample data (fictional)
 
-Everything here is made up. Plates (SAM101 to SAM105), driver names, streets, suburbs, fuel stations and amounts are fictional and match no real person, vehicle or company.
+Everything here is made up. Plates (TST101 to TST106), employee names, streets, towns, fuel stations, card numbers and amounts are invented and match no real person, vehicle, site or company. The files copy the layout of the real files so the dashboard can be tried without any real data.
+
+Period: 3 August to 1 November 2026 (13 weeks), 10 employees, 6 vehicles.
 
 | File | What it is | Where to load it |
 |---|---|---|
-| `SAM101_...xlsx` to `SAM105_...xlsx` | Cartrack trip reports, one per vehicle, 1 to 14 September 2026 | Upload Cartrack reports |
-| `sample_supervisor_schedule.xlsx` | Daily supervisor schedule (site, start time, team) | Supervisor schedule upload |
-| `sample_fuel_card_statement_Sep_2026.pdf` | Fuel card statement | Fuel check |
-| `sample_driver_roster.csv` | Plate and driver name | Driver roster |
+| `TST101_03_08_2026_01_11_2026.xls` to `TST106_...xls` | Cartrack trip reports (sheet Overview), one per vehicle | Upload Cartrack reports |
+| `supervisor_schedule.xlsx` | Supervisor e-mail text, one line per cell (date, Location, Start time, Team, Sick/Annual Leave) | Supervisor schedule upload |
+| `vehicle.xlsx` | Vehicle number and driver | Driver roster |
+| `Sample_Fuel_Vehicle_Report_August_2026.xlsx/.pdf` (and September, October) | Fuel-card vehicle report layout with card fee and transaction fee lines | Fuel check |
+| `Sample_Written_Timesheets.xlsx` | Written IN, OUT and hours per employee-day, with deliberate mistakes | Comparison and testing |
+| `Sample_Result_Comparison.xlsx` | Written versus recalculated versus dashboard hours | Comparison and testing |
 
-The data includes one single-trip day (SAM102, 8 Sep), one day with no last trip (SAM103, 10 Sep) and a day off (SAM105), so the flags and the data-gap marker can be seen.
+The data deliberately contains mistakes so the checks can be seen working: 40 days where the break was not deducted, 25 days with a half-hour slip, 8 leave days, four employees with no vehicle (they take their supervisor's OUT) and three fuel purchases that are too large.
