@@ -926,6 +926,7 @@ tr.day-row{cursor:pointer;} tr.day-row:hover td{background:var(--paper-alt);}
     <button class="tab-btn" data-tab="review" id="tab-btn-review">Review queue</button>
     <button class="tab-btn" data-tab="noveh" id="tab-btn-noveh">Workers without a vehicle</button>
     <button class="tab-btn" data-tab="pay" id="tab-btn-pay">Pay run</button>
+    <button class="tab-btn" data-tab="disposal" id="tab-btn-disposal">Disposal dockets</button>
     <button class="tab-btn" data-tab="ask" id="tab-btn-ask">Ask why</button>
     <button class="tab-btn" data-tab="route" id="tab-btn-route">Route &amp; voice</button>
     <span class="spacer"></span>
@@ -1537,6 +1538,34 @@ tr.day-row{cursor:pointer;} tr.day-row:hover td{background:var(--paper-alt);}
       <div id="cmd-msg" style="font-size:13px; margin-top:8px; color:var(--ink-soft);"></div>
     </section>
   </div><!-- /tab-route -->
+
+  <div id="tab-disposal" style="display:none;">
+    <section>
+      <div class="section-head">
+        <h2>Disposal dockets</h2>
+        <p>Check each disposal (tip) docket against the GPS record: did a vehicle really go to the disposal site at that time? Everything stays in this browser's memory and is erased on log out.</p>
+      </div>
+      <div class="upload-box" style="flex-direction:column; align-items:stretch;">
+        <div class="txt"><b>1. Paste the dockets, one per line</b>
+          <span>Columns separated by commas or tabs: <code>date, time, weight (tonnes), cost (excl GST), vehicle</code>. Time and vehicle can be left blank. Date as 14/10/2026 or 2026-10-14. Or choose a CSV / Excel file with the same columns.</span></div>
+        <textarea id="dsp-text" rows="6" spellcheck="false" autocomplete="off" style="width:100%; font-family:var(--f-mono, monospace); font-size:12.5px; margin-top:8px;" placeholder="14/10/2026, 10:35, 1.84, 412.50, Vehicle 2&#10;15/10/2026, , 0.92, 205.00,"></textarea>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; align-items:center;">
+          <label class="btn ghost small" for="dsp-file">Choose CSV / Excel</label><input type="file" id="dsp-file" accept=".csv,.xlsx,.xls" style="display:none;">
+        </div>
+      </div>
+      <div class="upload-box" style="flex-direction:column; align-items:stretch;">
+        <div class="txt"><b>2. Tell it how the disposal site appears in the tracker</b>
+          <span>Part of the place name or address as Cartrack shows it (for example the road name of the landfill or transfer station). Separate several with commas.</span></div>
+        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; align-items:flex-end;">
+          <label style="flex:1 1 220px;">Disposal site text<br><input type="text" id="dsp-site" autocomplete="off" spellcheck="false" style="width:100%;" placeholder="e.g. landfill road name"></label>
+          <label>Time window (minutes)<br><input type="number" id="dsp-win" value="90" min="5" max="600" style="width:110px;"></label>
+          <label>Site closes at (optional)<br><input type="time" id="dsp-close" style="width:130px;"></label>
+          <button class="btn" id="dsp-run" type="button">Check dockets</button>
+        </div>
+      </div>
+      <div id="dsp-out" style="margin-top:14px;"></div>
+    </section>
+  </div>
 
   <div id="tab-ask" style="display:none;">
     <section>
@@ -8754,8 +8783,120 @@ document.getElementById('setup-close-btn').addEventListener('click', closeSetup)
 document.getElementById('setup-back').addEventListener('click', closeSetup);
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSetup(); });
 
+
+// ================= Disposal dockets (memory only) =================
+// Reads dockets typed/pasted/uploaded by the user and checks each against the GPS trips: a trip must END at the
+// disposal site on the docket date (and within the time window when the docket has a time). Nothing is stored.
+let dspDockets = [];
+function dspClear(){
+  dspDockets = [];
+  ['dsp-text','dsp-site','dsp-close'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+  const o=document.getElementById('dsp-out'); if(o) o.innerHTML='';
+}
+function dspParseDate(s){
+  s = String(s||'').trim(); let m;
+  let r = null;
+  if((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) r = {y:+m[1], mo:+m[2], d:+m[3]};
+  else if((m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})$/))){ let y=+m[3]; if(y<100) y+=2000; r = {y, mo:+m[2], d:+m[1]}; } // NZ day/month/year
+  if(!r || r.mo<1 || r.mo>12 || r.d<1 || r.d>31 || r.y<2000 || r.y>2100) return null;
+  const chk = new Date(Date.UTC(r.y, r.mo-1, r.d)); if(chk.getUTCMonth()!==r.mo-1) return null;
+  return r;
+}
+function dspParseTime(s){
+  s = String(s||'').trim(); if(!s) return null;
+  const m = s.match(/^(\d{1,2})[:.](\d{2})\s*(am|pm)?$/i); if(!m) return null;
+  let h=+m[1]; const mi=+m[2]; const ap=(m[3]||'').toLowerCase();
+  if(ap==='pm' && h<12) h+=12; if(ap==='am' && h===12) h=0;
+  return (h>23||mi>59) ? null : h*60+mi;
+}
+function dspParseLines(text){
+  const out=[], bad=[];
+  String(text||'').split(/\r?\n/).forEach((line,i)=>{
+    if(!line.trim()) return;
+    const c = line.split(/\t|,/).map(x=>x.trim());
+    const dt = dspParseDate(c[0]);
+    if(!dt){ if(i>0 || /\d/.test(c[0])) bad.push(i+1); return; } // a header line is skipped silently
+    const w = parseFloat(String(c[2]||'').replace(/[^\d.]/g,'')), cost = parseFloat(String(c[3]||'').replace(/[^\d.]/g,''));
+    out.push({line:i+1, date:dt, iso:`${dt.y}-${String(dt.mo).padStart(2,'0')}-${String(dt.d).padStart(2,'0')}`, mins:dspParseTime(c[1]),
+              tonnes:isNaN(w)?null:w, cost:isNaN(cost)?null:cost, veh:(c[4]||'').trim()});
+  });
+  return {rows:out, bad};
+}
+function dspTripsEndingAt(keys){
+  const res=[];
+  Object.keys(accumulatedRawByVehicle||{}).forEach(plate=>{
+    (accumulatedRawByVehicle[plate]||[]).forEach(t=>{
+      const e = new Date(t.end_dt).getTime(); if(isNaN(e)) return;
+      const loc = String(t.end_loc||'').toLowerCase();
+      if(!keys.some(k=>loc.includes(k))) return;
+      const iso = new Date(e).toISOString();
+      res.push({plate, end:e, iso:iso.substr(0,10), mins:+iso.substr(11,2)*60+ +iso.substr(14,2)});
+    });
+  });
+  return res;
+}
+function dspHm(m){ return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+function renderDisposal(){
+  const out=document.getElementById('dsp-out'); if(!out) return;
+  const keys = (document.getElementById('dsp-site').value||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
+  const win = Math.max(5, +document.getElementById('dsp-win').value||90);
+  const closeM = dspParseTime(document.getElementById('dsp-close').value);
+  const parsed = dspParseLines(document.getElementById('dsp-text').value);
+  dspDockets = parsed.rows;
+  if(!dspDockets.length){ out.innerHTML='<p class="muted">Paste or upload some dockets, enter the disposal site text, then press Check dockets.</p>'; return; }
+  if(!keys.length){ out.innerHTML='<p class="muted">Enter how the disposal site appears in the tracker (step 2), then press Check dockets.</p>'; return; }
+  if(!currentData.length){ out.innerHTML='<p class="muted">Load the Cartrack trip files first so there are trips to check against.</p>'; return; }
+  const trips = dspTripsEndingAt(keys), used = new Set();
+  const norm = x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  let sumT=0, sumC=0, nOk=0;
+  const rows = dspDockets.map(d=>{
+    if(d.tonnes!=null) sumT+=d.tonnes; if(d.cost!=null) sumC+=d.cost;
+    let best=null, bestDiff=1e9;
+    trips.forEach((t,i)=>{
+      if(t.iso!==d.iso) return;
+      if(d.veh){ const w=norm(d.veh); if(!(norm(t.plate)===w || norm(vLabel(t.plate))===w || norm(driverFor(t.plate))===w || norm(nameVeh(t.plate))===w)) return; }
+      const diff = d.mins==null ? 0 : Math.abs(t.mins-d.mins);
+      if(d.mins!=null && diff>win) return;
+      if(diff<bestDiff){ best=i; bestDiff=diff; }
+    });
+    let status, note='';
+    if(best!=null){ used.add(best); nOk++; status='ok'; const t=trips[best]; note=`${evEsc(nameVeh(t.plate))} arrived ${dspHm(t.mins)}`+(d.mins!=null?` (${bestDiff} min from docket)`:''); }
+    else { status='bad'; note='No vehicle trip ended at the disposal site'+(d.mins!=null?` within ${win} min`:'')+' on this date'; }
+    if(closeM!=null && d.mins!=null && d.mins>closeM){ status = status==='ok'?'warn':status; note+=' · docket time is after the site closes'; }
+    return {d, status, note};
+  });
+  const orphan = trips.filter((t,i)=>!used.has(i)).sort((a,b)=>a.end-b.end);
+  const chip = s=> s==='ok' ? '<span class="chip" style="background:#dff3e6;color:#1d6b3a;">Matched</span>' : s==='warn' ? '<span class="chip" style="background:#fff2d6;color:#8a5a00;">Check</span>' : '<span class="chip" style="background:#fbe0dc;color:#9b2c1f;">No trip found</span>';
+  const fd = d=>`${String(d.d).padStart(2,'0')}/${String(d.mo).padStart(2,'0')}/${d.y}`;
+  out.innerHTML = `
+    <div style="display:flex; gap:18px; flex-wrap:wrap; margin-bottom:10px;">
+      <div class="kpi"><div class="num">${dspDockets.length}</div><div class="lbl">Dockets</div></div>
+      <div class="kpi"><div class="num">${nOk}</div><div class="lbl">Matched to a trip</div></div>
+      <div class="kpi"><div class="num">${sumT.toFixed(2)} t</div><div class="lbl">Total weight</div></div>
+      <div class="kpi"><div class="num">$${sumC.toFixed(2)}</div><div class="lbl">Total cost (excl GST)</div></div>
+    </div>
+    ${parsed.bad.length?`<p class="muted">Line(s) ${parsed.bad.join(', ')} could not be read as a docket (check the date).</p>`:''}
+    <div style="overflow:auto;"><table style="font-size:12.5px;"><thead><tr><th>Date</th><th>Time</th><th class="num">Tonnes</th><th class="num">Cost</th><th>Result</th><th>Detail</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${fd(r.d.date)}</td><td>${r.d.mins==null?'—':dspHm(r.d.mins)}</td><td class="num">${r.d.tonnes==null?'—':r.d.tonnes.toFixed(2)}</td><td class="num">${r.d.cost==null?'—':'$'+r.d.cost.toFixed(2)}</td><td>${chip(r.status)}</td><td>${r.note}</td></tr>`).join('')}
+    </tbody></table></div>
+    <h3 style="margin-top:16px;">Trips to the disposal site with no docket (${orphan.length})</h3>
+    ${orphan.length?`<div style="overflow:auto;"><table style="font-size:12.5px;"><thead><tr><th>Date</th><th>Arrived</th><th>Driver / vehicle</th></tr></thead><tbody>${orphan.map(t=>`<tr><td>${t.iso.split('-').reverse().join('/')}</td><td>${dspHm(t.mins)}</td><td>${evEsc(nameVeh(t.plate))}</td></tr>`).join('')}</tbody></table></div><p class="muted">A trip here may be a visit with nothing delivered, or a missing docket worth chasing.</p>`:'<p class="muted">None.</p>'}`;
+}
+document.getElementById('dsp-run').addEventListener('click', renderDisposal);
+document.getElementById('dsp-file').addEventListener('change', async e=>{
+  const f = e.target.files && e.target.files[0]; if(!f) return;
+  try{
+    let text;
+    if(/\.csv$/i.test(f.name)) text = await f.text();
+    else { const wb = XLSX.read(await f.arrayBuffer(), {type:'array', cellDates:false}); const ws = wb.Sheets[wb.SheetNames[0]]; text = XLSX.utils.sheet_to_csv(ws); }
+    document.getElementById('dsp-text').value = text;
+    renderDisposal();
+  }catch(err){ document.getElementById('dsp-out').innerHTML='<p class="muted">That file could not be read.</p>'; }
+  e.target.value='';
+});
+
 // ---- tabs ----
-const ALL_TABS = ['all', 'day', 'single', 'check', 'fuel', 'review', 'noveh', 'pay', 'route', 'ask'];
+const ALL_TABS = ['all', 'day', 'single', 'check', 'fuel', 'review', 'noveh', 'pay', 'route', 'disposal', 'ask'];
 function activateTab(name){
   ALL_TABS.forEach(t=>{
     document.getElementById('tab-btn-'+t).classList.toggle('active', t===name);
@@ -8769,6 +8910,7 @@ function activateTab(name){
   if(name === 'pay') renderPayRun();
   if(name === 'route') renderRoute();
   if(name === 'ask') renderAskTab();
+  if(name === 'disposal') renderDisposal();
   if(name === 'day') renderDayView();
 }
 document.getElementById('tab-btn-all').addEventListener('click', ()=>activateTab('all'));
@@ -8781,6 +8923,7 @@ document.getElementById('tab-btn-day').addEventListener('click', ()=>activateTab
 document.getElementById('tab-btn-pay').addEventListener('click', ()=>activateTab('pay'));
 document.getElementById('tab-btn-route').addEventListener('click', ()=>activateTab('route'));
 document.getElementById('tab-btn-ask').addEventListener('click', ()=>activateTab('ask'));
+document.getElementById('tab-btn-disposal').addEventListener('click', ()=>activateTab('disposal'));
 
 // ---- date range filter ----
 document.getElementById('apply-date-btn').addEventListener('click', ()=>{
@@ -10583,6 +10726,7 @@ document.getElementById('logout-btn').addEventListener('click', ()=>{
 })();
 
 function clearLoadedData(){
+  try{ dspClear(); }catch(e){}
   // truly empty -- NOT the sample data, so nothing (no total hours, no IN/OUT times)
   // is visible until real files are uploaded again
   currentData = [];
